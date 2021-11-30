@@ -43,7 +43,7 @@ was only tested on a Windows machine running Python 3.9.5.
 The code provided in this project is an open source example and should not
 be treated as an officially supported product. Use at your own risk. If you
 encounter any problems, please log an
-[issue](https://github.com/CC-Digital-Innovation/PRTG-Duplicate-Device-Finder/issues).
+[issue](https://github.com/CC-Digital-Innovation/PRTG-Offline-Sensor-Reporter/issues).
 
 ## Contributing
 1. Fork it!
