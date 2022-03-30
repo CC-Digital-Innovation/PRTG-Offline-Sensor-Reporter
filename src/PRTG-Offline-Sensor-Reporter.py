@@ -1,5 +1,4 @@
 import configparser
-import json
 import os
 
 import requests
@@ -7,12 +6,12 @@ import requests
 
 # Module information.
 __author__ = 'Anthony Farina'
-__copyright__ = 'Copyright 2021, PRTG Offline Sensor Reporter'
+__copyright__ = 'Copyright (C) 2022 Computacenter Digital Innovation'
 __credits__ = ['Anthony Farina']
-__license__ = 'MIT'
-__version__ = '1.0.0'
 __maintainer__ = 'Anthony Farina'
 __email__ = 'farinaanthony96@gmail.com'
+__license__ = 'MIT'
+__version__ = '2.0.0'
 __status__ = 'Released'
 
 
@@ -20,40 +19,82 @@ __status__ = 'Released'
 CONFIG = configparser.ConfigParser()
 CONFIG_PATH = '/../configs/PRTG-Offline-Sensor-Reporter-config.ini'
 CONFIG.read(os.path.dirname(os.path.realpath(__file__)) + CONFIG_PATH)
-PRTG_API_URL = CONFIG['PRTG Info']['server-url'] + '/api/table.xml?'
+
+# PRTG global variables.
+PRTG_INST_URL = CONFIG['PRTG Info']['server-url']
+PRTG_TABLE_URL = PRTG_INST_URL + '/api/table.xml?'
 PRTG_USERNAME = CONFIG['PRTG Info']['username']
 PRTG_PASSWORD = CONFIG['PRTG Info']['password']
-PRTG_PASSHASH = CONFIG['PRTG Info']['passhash']
-OG_API_KEY = CONFIG['Opsgenie API Info']['API-Key']
+PRTG_PROBE_FILTER = CONFIG['PRTG Info']['probe-substrings'].split(',')
+PRTG_GROUP_FILTER = CONFIG['PRTG Info']['group-substrings'].split(',')
+PRTG_DEVICE_FILTER = CONFIG['PRTG Info']['device-substrings'].split(',')
+PRTG_SENSOR_FILTER = CONFIG['PRTG Info']['sensor-substrings'].split(',')
+
+# Opsgenie global variables.
+OG_BASE_API_URL = 'https://api.opsgenie.com/v2/'
+OG_ALERTS_URL = OG_BASE_API_URL + 'alerts'
+OG_API_KEY = CONFIG['Opsgenie Info']['api-key']
+OG_ALERT_MESSAGE = CONFIG['Opsgenie Info']['message']
+OG_ALERT_TAGS = CONFIG['Opsgenie Info']['tags'].split(',')
+OG_TEAM_RESPONDERS = CONFIG['Opsgenie Info']['team-responders'].split(',')
+OG_USER_RESPONDERS = CONFIG['Opsgenie Info']['user-responders'].split(',')
 
 
-# This function will report the sensors that are currently down or unknown in PRTG. It will
-# make an Opsgenie alert of the report.
+# This function will collect live sensor statuses from PRTG that are
+# down, down (acknowledged), unknown, or partially down. It will then
+# make an Opsgenie alert of the collected information.
 def prtg_offline_sensor_reporter() -> None:
-    # Prepare PRTG API parameters to retrieve all sensors with a status of 1 (Unknown),
-    # 5 (Down), 13 (Down Acknowledged), or 14 (Down Partial).
-    prtg_api_params = {'content': 'sensors',
-                       'columns': 'probe,group,device,name,status,objid,parentid',
-                       'filter_status': [1, 5, 13, 14],
-                       'sortby': 'status',
-                       'output': 'json',
-                       'count': '50000',
-                       'username': PRTG_USERNAME}
+    # Prepare the PRTG API request parameters.
+    sensor_params = {
+        'content': 'sensors',
+        'columns': 'probe,group,device,name,status,objid,parentid',
+        'filter_status': [1, 5, 13, 14],
+        'sortby': 'status',
+        'output': 'json',
+        'count': '50000',
+        'username': PRTG_USERNAME,
+        'password': PRTG_PASSWORD
+    }
 
-    # Add password or passhash to the end of the parameter list for authorization to the PRTG API.
-    add_auth(prtg_api_params)
+    # Filter certain probes, if configured.
+    if PRTG_PROBE_FILTER[0] != '':
+        probe_substrings = list()
+        for substring in PRTG_PROBE_FILTER:
+            probe_substrings.append('@sub(' + substring + ')')
+        sensor_params['filter_probe'] = probe_substrings
 
-    # Send the PRTG API request and convert it to JSON.
-    prtg_sensors_resp = requests.get(url=PRTG_API_URL, params=prtg_api_params)
-    prtg_sensors = json.loads(prtg_sensors_resp.text)
+    # Filter certain groups, if configured.
+    if PRTG_GROUP_FILTER[0] != '':
+        group_substrings = list()
+        for substring in PRTG_GROUP_FILTER:
+            group_substrings.append('@sub(' + substring + ')')
+        sensor_params['filter_group'] = group_substrings
 
-    # Prepare lists for storing respective sensor status.
+    # Filter certain devices, if configured.
+    if PRTG_DEVICE_FILTER[0] != '':
+        device_substrings = list()
+        for substring in PRTG_DEVICE_FILTER:
+            device_substrings.append('@sub(' + substring + ')')
+        sensor_params['filter_device'] = device_substrings
+
+    # Filter certain sensor names, if configured.
+    if PRTG_SENSOR_FILTER[0] != '':
+        sensor_substrings = list()
+        for substring in PRTG_SENSOR_FILTER:
+            sensor_substrings.append('@sub(' + substring + ')')
+        sensor_params['filter_name'] = sensor_substrings
+
+    # Prepare and send the PRTG API request and convert it to JSON.
+    prtg_sensors_resp = requests.get(url=PRTG_TABLE_URL, params=sensor_params)
+    prtg_sensors = prtg_sensors_resp.json()
+
+    # Prepare lists for storing respective sensor statuses.
     unknown_list = list()
     down_list = list()
     down_ack_list = list()
     down_partial_list = list()
 
-    # Go through all the sensors from the PRTG API request.
+    # Go through all the retrieved sensors.
     for sensor in prtg_sensors['sensors']:
         # Add this sensor to its respective status list.
         if sensor['status_raw'] == 1:
@@ -69,60 +110,61 @@ def prtg_offline_sensor_reporter() -> None:
             unknown_list.append(sensor)
 
     # Make an iterable list of the sensor status lists.
-    all_sensors_list = [unknown_list, down_list, down_ack_list, down_partial_list]
-    descr_str = ''
+    all_sensors_list = \
+        [unknown_list, down_list, down_ack_list, down_partial_list]
+    report_str = '\n'
     list_count = 0
 
     # Iterate through each sensor status list.
     for sensor_list in all_sensors_list:
-        # Check which status list we are on. Based on the order in all_sensors_list.
+        # Check which status list we are on based on the order in
+        # all_sensors_list.
         if list_count == 0:
-            descr_str += 'Current Unknown sensors in PRTG:\n'
+            report_str += 'Current Unknown sensors in PRTG:\n'
         elif list_count == 1:
-            descr_str += '\nCurrent Down sensors in PRTG:\n'
+            report_str += '\nCurrent Down sensors in PRTG:\n'
         elif list_count == 2:
-            descr_str += '\nCurrent Down (Ack\'d) sensors in PRTG:\n'
+            report_str += '\nCurrent Down (Ack\'d) sensors in PRTG:\n'
         else:
-            descr_str += '\n Current Partially Down sensors in PRTG:\n'
+            report_str += '\nCurrent Partially Down sensors in PRTG:\n'
 
         # Check if this list is empty.
         if len(sensor_list) == 0:
-            descr_str += 'No sensors to report!\n'
+            report_str += 'No sensors to report!\n'
 
-        # Go through each sensor in this list and add it to the description string.
-        # This for loop will not run if this list is empty.
+        # Go through each sensor in this list and add it to the report
+        # string.
         for sensor in sensor_list:
-            descr_str += sensor['probe'] + ' > ' + sensor['group'] + ' > ' + sensor['device'] + ' > ' + \
-                         sensor['name'] + ' is ' + sensor['status'] + '\n'
+            report_str += sensor['probe'] + ' > ' + sensor['group'] + ' > ' + \
+                          sensor['device'] + ' > ' + sensor['name'] + ' is ' +\
+                          sensor['status'] + '\n'
 
-        # We are about to begin the next list iteration.
-        descr_str += '\n'
+        # We are about to begin the next status list.
+        report_str += '\n'
         list_count += 1
 
-    # Prepare and send the API call to OpsGenie.
-    og_api_url = 'https://api.opsgenie.com/v2/alerts'
-    og_api_resp = requests.post(url=og_api_url,
-                                headers={'Authorization': OG_API_KEY, 'Content-Type': 'application/json'},
-                                json={'message': 'Current Offline PRTG Sensors',
-                                      'description': descr_str,
-                                      'responders': [
-                                          {'id': 'test-team-id', 'type': 'team'},
-                                          {'id': 'test-user-id', 'type': 'user'}
-                                      ],
-                                      'tags': ['PRTG', 'test-tag']
-                                      })
+    # Fill responders list with teams and users from the config file.
+    alert_responders = list()
 
+    # Add teams.
+    for team in OG_TEAM_RESPONDERS:
+        alert_responders.append({'name': team, 'type': 'team'})
 
-# This function (short for "add authorization") appends the authorization method to the given params
-# parameter to authenticate a PRTG API call. Based on which field is filled inside the config file,
-# we will append either the password or passhash. Passhash has priority over password.
-def add_auth(params) -> None:
-    # If the passhash field is empty in the config file, use the password field.
-    if PRTG_PASSHASH == '':
-        params.update({'password': PRTG_PASSWORD})
-    # The passhash field is not empty. Use this field.
-    else:
-        params.update({'passhash': PRTG_PASSHASH})
+    # Add users.
+    for user in OG_USER_RESPONDERS:
+        alert_responders.append({'name': user, 'type': 'user'})
+
+    # Prepare and send the API call to OpsGenie to make an alert.
+    og_api_resp = requests.post(url=OG_ALERTS_URL,
+                                headers={'Authorization': OG_API_KEY},
+                                json={
+                                    'message': OG_ALERT_MESSAGE,
+                                    'description': report_str,
+                                    'responders': alert_responders,
+                                    'tags': OG_ALERT_TAGS
+                                })
+    print(og_api_resp.status_code)
+    print(og_api_resp.text)
 
 
 # The main method that runs the script. There are no input parameters.
