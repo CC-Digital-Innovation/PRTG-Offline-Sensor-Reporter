@@ -65,6 +65,6 @@ spec:
               name: prtg-offline-sensor-reporter
               args: ['/bin/bash', '-c', 'source /vault/secrets/opsgenie && source /vault/secrets/opsgenie-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg && source /vault/secrets/papertrail && source /vault/secrets/slack && python ./src/PRTG_Offline_Sensor_Reporter.py']
           restartPolicy: Never
-          serviceAccountName: prtg_offline_sensor_reporter
+          serviceAccountName: prtg-offline-sensor-reporter
       backoffLimit: 3
   schedule: 0 13 * * *
