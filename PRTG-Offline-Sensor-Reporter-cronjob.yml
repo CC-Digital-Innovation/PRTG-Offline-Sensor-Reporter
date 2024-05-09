@@ -67,4 +67,4 @@ spec:
           restartPolicy: Never
           serviceAccountName: prtg-offline-sensor-reporter
       backoffLimit: 3
-  schedule: 0 13 * * *
+  schedule: 0 13 * * 1-6
