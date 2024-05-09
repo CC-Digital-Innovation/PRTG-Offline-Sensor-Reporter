@@ -1,37 +1,38 @@
-# PRTG-Duplicate-Device-Finder
+# PRTG-Offline-Sensor-Reporter
 
 ## Summary
-This script will make an Opsgenie alert that reports any unknown, down, down
-(acknowledged), or down (partial) sensors in a given instance of PRTG.
+Collects sensors with statuses: down, down (acknowleged), down (partial), or unknown 
+and can be further filtered with exclusion groups. This data will be formatted into 
+an Opsgenie alert so it can be viewed inside a Slack channel via the Opsgenie/Slack 
+integration. If the script errors out, it will notify specified Slack channels.
 
 _Note: If you have any questions or comments you can always use GitHub
 discussions, or email me at farinaanthony96@gmail.com._
 
 #### Why
-Provides insight for the current offline sensors in PRTG in order for those
-sensors to be corrected. This helps ensure that the devices being monitored in 
-PRTG are online and fully operational.
+This script is ideal for a daily checkup before production hours begin. This 
+enables our team to tackle any issues that crop up with customer devices 
+before our customer's day begins. That way, we ensure device reliability,
+stability, and efficiency for our customers.
 
 ## Requirements
-- Python >= 3.10.2
-- configparser >= 5.2.0
-- requests >= 2.27.1
+- Python 3.12+
+- loguru
+- python-dotenv
+- requests
 
 ## Usage
-- Edit the config file with relevant PRTG / Opsgenie access information.
-
-- Add custom substrings to filter through PRTG probes, groups, devices, and 
-  sensors to report on only relevant sensors.
-
-- Add Opsgenie alert information to customize the alert message and responders 
-  of the alert.
+- Environment variables need to be set to specify Opsgenie API token, Opsgenie
+  team IDs/user IDs/escalation IDs/schedule IDs/title/tags for the alert, PRTG 
+  access, PRTG exclusion substrings for probes/groups/devices/sensors, logger 
+  configurations, Slack access, and Slack channel IDs for errors.
 
 - Simply run the script using Python:
-  `python PRTG-Offline-Sensor-Reporter.py`
+  `python PRTG_Offline_Sensor_Reporter.py`
 
 ## Compatibility
 Should be able to run on any machine with a Python interpreter. This script
-was only tested on a Windows machine running Python 3.10.2.
+was only tested on a Windows machine running Python 3.12.2.
 
 ## Disclaimer
 The code provided in this project is an open source example and should not
@@ -47,15 +48,9 @@ encounter any problems, please log an
 5. Submit a pull request ツ
 
 ## History
-- version 2.0.0 - 2022/03/30
-    - Added custom PRTG filtering system
-    - Added customization options for the Opsgenie alert.
-    - Updated README
-    - Updated packages / Python version
-  
-
-- version 1.0.0 - 2021/11/30
-    - (initial release)
+-  version 1.0.0 - 2024/05/06
+    - (initial public release)
+    - Script has internally existed for about 2 years
 
 ## Credits
 Anthony Farina <<farinaanthony96@gmail.com>>
