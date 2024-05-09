@@ -37,6 +37,7 @@ resources:
   # resource of where to push image
   - name: registry
     type: registry-image
+    icon: lighthouse-on
     source:
       repository: ((harbor.repository))/((image))
       username: ((harbor.username))

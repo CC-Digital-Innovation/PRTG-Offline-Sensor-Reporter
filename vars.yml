@@ -1,7 +1,7 @@
-repo: https://github.com/CC-Digital-Innovation/C3PSNOW.git
-ssh_url: git@github.com:CC-Digital-Innovation/C3PSNOW.git
+repo: https://github.com/CC-Digital-Innovation/PRTG-Offline-Sensor-Reporter.git
+ssh_url: git@github.com:CC-Digital-Innovation/PRTG-Offline-Sensor-Reporter.git
 branch: main
-project_root: c3psnow
-image: c3psnow/c3psnow
-manifest_path: kubernetes/c3psnow-deployment.yml
-pipeline: c3psnow
+project_root: src
+image: prtg-offline-sensor-reporter
+manifest_path: PRTG-Offline-Sensor-Reporter-cronjob.yml
+pipeline: prtg-offline-sensor-reporter
