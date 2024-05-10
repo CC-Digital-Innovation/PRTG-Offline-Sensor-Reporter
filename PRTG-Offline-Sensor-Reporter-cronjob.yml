@@ -68,3 +68,7 @@ spec:
           serviceAccountName: prtg-offline-sensor-reporter
       backoffLimit: 3
   schedule: 0 13 * * 1-6
+  template:
+    spec:
+      containers:
+        - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:0.0.1
