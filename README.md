@@ -48,6 +48,13 @@ encounter any problems, please log an
 5. Submit a pull request ツ
 
 ## History
+-  version 1.0.1 - 2024/05/10
+    - Fixed Slack error output bug
+    - Fixed incorrect name for log files
+    - Corrected Slack API token
+    - Support new location for Slack API token
+
+
 -  version 1.0.0 - 2024/05/06
     - (initial public release)
     - Script has internally existed for about 2 years

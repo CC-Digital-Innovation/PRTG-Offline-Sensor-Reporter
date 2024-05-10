@@ -12,14 +12,14 @@ __author__ = 'Anthony Farina'
 __copyright__ = 'Copyright 2024, PRTG Offline Sensor Reporter'
 __credits__ = ['Anthony Farina']
 __license__ = 'MIT'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __maintainer__ = 'Anthony Farina'
 __email__ = 'farinaanthony96@gmail.com'
 __status__ = 'Released'
 
 
 # Set up the extraction of global constants from the environment variable file.
-dotenv.load_dotenv('./../.env')
+dotenv.load_dotenv()
 
 
 # Opsgenie global variables.
@@ -278,12 +278,13 @@ def send_slack_message(message: str, channel_id: str) -> None:
     )
 
     # Check the status of the request.
-    slack_response_is_ok = slack_response.json()['ok']
+    slack_response_message = slack_response.json()
+    slack_response_is_ok = slack_response_message['ok']
     if slack_response_is_ok:
         logger.info('Slack message sent successfully!')
     else:
         logger.error(f'Slack message failed to send.')
-        logger.error(f'Reason: {slack_response.json()['reason']}')
+        logger.error(f'Reason: {slack_response_message['error']}')
 
 
 def send_error_to_slack_channels(error_message: str) -> None:
@@ -313,8 +314,8 @@ def initialize_logger() -> None:
 
     # Add the local log file to the logger.
     now_utc = datetime.now(timezone.utc)
-    logger.add(SCRIPT_PATH + '/../logs/prtg_meraki_snow_sync_log_' +
-        now_utc.strftime('%Y-%m-%d_%H-%M-%S-%Z') + '.log')
+    logger.add(f"{SCRIPT_PATH}'/../logs/{LOGGER_FILE_NAME}_log_" \
+               f"{now_utc.strftime('%Y-%m-%d_%H-%M-%S-%Z')}.log")
 
     # Add Paper Trail to the logger.
     paper_trail_handle = SysLogHandler(address=('logs.papertrailapp.com',

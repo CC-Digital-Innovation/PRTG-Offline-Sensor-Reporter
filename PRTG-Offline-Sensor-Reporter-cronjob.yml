@@ -16,10 +16,10 @@ spec:
               {{- with secret "secret/opsgenie" -}}
                 export OG_API_ALERTS_URI="{{ .Data.data.api_alerts_url }}"
               {{- end }}
-            vault.hashicorp.com/agent-inject-secret-opsgenie-prtg-offline-sensor-reporter: 'secret/opsgenie/prtg_offline_sensor_reporter'
-            vault.hashicorp.com/agent-inject-template-opsgenie-prtg-offline-sensor-reporter: |
-              {{- with secret "secret/opsgenie/prtg_offline_sensor_reporter" -}}
-                export OG_API_TOKEN="{{ .Data.data.api_key }}"
+            vault.hashicorp.com/agent-inject-secret-v-opsgenie: 'secret/v/opsgenie'
+            vault.hashicorp.com/agent-inject-template-v-opsgenie: |
+              {{- with secret "secret/v/opsgenie" -}}
+                export OG_API_TOKEN="{{ .Data.data.api_token }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-prtg-offline-sensor-reporter: 'secret/v/prtg_offline_sensor_reporter'
             vault.hashicorp.com/agent-inject-template-v-prtg-offline-sensor-reporter: |
@@ -63,7 +63,7 @@ spec:
             - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:latest
               imagePullPolicy: Always
               name: prtg-offline-sensor-reporter
-              args: ['/bin/bash', '-c', 'source /vault/secrets/opsgenie && source /vault/secrets/opsgenie-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg && source /vault/secrets/papertrail && source /vault/secrets/slack && python ./src/PRTG_Offline_Sensor_Reporter.py']
+              args: ['/bin/bash', '-c', 'source /vault/secrets/opsgenie && source /vault/secrets/v-opsgenie && source /vault/secrets/v-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg && source /vault/secrets/papertrail && source /vault/secrets/slack && python ./src/PRTG_Offline_Sensor_Reporter.py']
           restartPolicy: Never
           serviceAccountName: prtg-offline-sensor-reporter
       backoffLimit: 3
