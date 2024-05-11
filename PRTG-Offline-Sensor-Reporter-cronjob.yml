@@ -71,4 +71,4 @@ spec:
   template:
     spec:
       containers:
-        - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:0.0.1
+        - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:0.0.2
