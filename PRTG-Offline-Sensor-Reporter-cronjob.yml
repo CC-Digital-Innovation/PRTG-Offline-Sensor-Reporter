@@ -60,7 +60,7 @@ spec:
             vault.hashicorp.com/agent-pre-populate-only: "true"
         spec:
           containers:
-            - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:latest
+            - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:0.0.2
               imagePullPolicy: Always
               name: prtg-offline-sensor-reporter
               args: ['/bin/bash', '-c', 'source /vault/secrets/opsgenie && source /vault/secrets/v-opsgenie && source /vault/secrets/v-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg && source /vault/secrets/papertrail && source /vault/secrets/slack && python ./src/PRTG_Offline_Sensor_Reporter.py']
@@ -68,7 +68,3 @@ spec:
           serviceAccountName: prtg-offline-sensor-reporter
       backoffLimit: 3
   schedule: 0 13 * * 1-6
-  template:
-    spec:
-      containers:
-        - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:0.0.2
