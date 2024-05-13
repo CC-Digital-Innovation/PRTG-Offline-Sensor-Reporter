@@ -134,7 +134,7 @@ def prtg_offline_sensor_reporter() -> None:
     for sensor_list in all_sensor_status_lists:
         # Check which status list we are on. Based on the order in all_sensors_list.
         if list_count == 0:
-            alert_report_text += 'Current Unknown sensors in PRTG:\n'
+            alert_report_text += '\nCurrent Unknown sensors in PRTG:\n'
         elif list_count == 1:
             alert_report_text += '\nCurrent Down sensors in PRTG:\n'
         elif list_count == 2:
