@@ -10,18 +10,22 @@ spec:
         metadata:
           annotations:
             vault.hashicorp.com/agent-inject: 'true'
+            vault.hashicorp.com/agent-auto-auth-exit-on-err: 'true'
             vault.hashicorp.com/role: 'prtg_offline_sensor_reporter'
             vault.hashicorp.com/agent-inject-secret-opsgenie: 'secret/opsgenie'
+            vault.hashicorp.com/error-on-missing-key-opsgenie: 'true'
             vault.hashicorp.com/agent-inject-template-opsgenie: |
               {{- with secret "secret/opsgenie" -}}
                 export OG_API_ALERTS_URI="{{ .Data.data.api_alerts_url }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-opsgenie: 'secret/v/opsgenie'
+            vault.hashicorp.com/error-on-missing-key-v-opsgenie: 'true'
             vault.hashicorp.com/agent-inject-template-v-opsgenie: |
               {{- with secret "secret/v/opsgenie" -}}
                 export OG_API_TOKEN="{{ .Data.data.api_token }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-prtg-offline-sensor-reporter: 'secret/v/prtg_offline_sensor_reporter'
+            vault.hashicorp.com/error-on-missing-key-v-prtg-offline-sensor-reporter: 'true'
             vault.hashicorp.com/agent-inject-template-v-prtg-offline-sensor-reporter: |
               {{- with secret "secret/v/prtg_offline_sensor_reporter" -}}
                 export OG_RESPONDER_TEAM_IDS="{{ .Data.data.og_responder_team_ids }}"
@@ -39,6 +43,7 @@ spec:
                 export SLACK_CHANNEL_IDS="{{ .Data.data.slack_channel_ids }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-prtg: 'secret/v/prtg'
+            vault.hashicorp.com/error-on-missing-key-v-prtg: 'true'
             vault.hashicorp.com/agent-inject-template-v-prtg: |
               {{- with secret "secret/v/prtg" -}}
                 export PRTG_INSTANCE_TABLE_URL="{{ .Data.data.table_url }}"
@@ -46,12 +51,14 @@ spec:
                 export PRTG_PASSHASH="{{ .Data.data.api_passhash }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-papertrail: 'secret/papertrail'
+            vault.hashicorp.com/error-on-missing-key-papertrail: 'true'
             vault.hashicorp.com/agent-inject-template-papertrail: |
               {{- with secret "secret/papertrail" -}}
                 export PAPERTRAIL_ADDRESS="{{ .Data.data.address }}"
                 export PAPERTRAIL_PORT="{{ .Data.data.port }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-slack: 'secret/slack'
+            vault.hashicorp.com/error-on-missing-key-slack: 'true'
             vault.hashicorp.com/agent-inject-template-slack: |
               {{- with secret "secret/slack" -}}
                 export SLACK_API_TOKEN="{{ .Data.data.errorbot_api_token }}"
