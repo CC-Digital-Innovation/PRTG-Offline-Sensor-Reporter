@@ -28,6 +28,65 @@ PRTG_EXCLUDED_DEVICE_NAMES = os.getenv('PRTG_EXCLUDED_DEVICE_SUBSTRINGS', defaul
 PRTG_EXCLUDED_SENSOR_NAMES = os.getenv('PRTG_EXCLUDED_SENSOR_SUBSTRINGS', default='').split(',')
 
 
+def filter_out(prtg_sensor: dict) -> bool:
+    """
+    This function will take a PRTG sensor in the form of a dictionary
+    and return whether the sensor should be filtered out of the report or not.
+
+    Params:
+        prtg_sensor (dict): The PRTG sensor dictionary to filter out. It must
+        have the probe, group, device, and name attributes from the API.
+
+    Returns:
+        (bool): True if this sensor should be excluded from the report, false
+        otherwise.
+    """
+
+    return any(excluded_probe_name for excluded_probe_name in PRTG_EXCLUDED_PROBE_NAMES 
+               if excluded_probe_name in prtg_sensor['probe']) or \
+           any(excluded_group_name for excluded_group_name in PRTG_EXCLUDED_GROUP_NAMES 
+               if excluded_group_name in prtg_sensor['group']) or \
+           any(excluded_device_name for excluded_device_name in PRTG_EXCLUDED_DEVICE_NAMES 
+               if excluded_device_name in prtg_sensor['device']) or \
+           any(excluded_sensor_name for excluded_sensor_name in PRTG_EXCLUDED_SENSOR_NAMES 
+               if excluded_sensor_name in prtg_sensor['name'])
+
+
+def opsgenie_responder_list() -> list[dict]:
+    """
+    This function will format and return a list of opsgenie responder objects
+    for an Opsgenie API alerts request.
+
+    Returns:
+        (list[dict]): A list of responder dictionaries for an Opsgenie API alert
+        request.
+    """
+
+    responders = list()
+
+    # Add team responders.
+    for team_responder_id in OPSGENIE_RESPONDER_TEAM_IDS:
+        responder = {'id': team_responder_id, 'type': 'team'}
+        responders.append(responder)
+
+    # Add user responders.
+    for user_responder_id in OPSGENIE_RESPONDER_USER_IDS:
+        responder = {'id': user_responder_id, 'type': 'user'}
+        responders.append(responder)
+
+    # Add escalation responders.
+    for escalation_responder_id in OPSGENIE_RESPONDER_ESCALATION_IDS:
+        responder = {'id': escalation_responder_id, 'type': 'escalation'}
+        responders.append(responder)
+
+    # Add schedule responders.
+    for schedule_responder_id in OPSGENIE_RESPONDER_SCHEDULE_IDS:
+        responder = {'id': schedule_responder_id, 'type': 'schedule'}
+        responders.append(responder)
+
+    return responders
+
+
 def run() -> None:
     """
      This function will gather the sensors that are currently down or unknown in the
@@ -160,65 +219,6 @@ def run() -> None:
     
     # Successfully end the script.
     logger.info(f'End of {OPSGENIE_ALERT_TITLE}')
-
-
-def filter_out(prtg_sensor: dict) -> bool:
-    """
-    This function will take a PRTG sensor in the form of a dictionary
-    and return whether the sensor should be filtered out of the report or not.
-
-    Params:
-        prtg_sensor (dict): The PRTG sensor dictionary to filter out. It must
-        have the probe, group, device, and name attributes from the API.
-
-    Returns:
-        (bool): True if this sensor should be excluded from the report, false
-        otherwise.
-    """
-
-    return any(excluded_probe_name for excluded_probe_name in PRTG_EXCLUDED_PROBE_NAMES 
-               if excluded_probe_name in prtg_sensor['probe']) or \
-           any(excluded_group_name for excluded_group_name in PRTG_EXCLUDED_GROUP_NAMES 
-               if excluded_group_name in prtg_sensor['group']) or \
-           any(excluded_device_name for excluded_device_name in PRTG_EXCLUDED_DEVICE_NAMES 
-               if excluded_device_name in prtg_sensor['device']) or \
-           any(excluded_sensor_name for excluded_sensor_name in PRTG_EXCLUDED_SENSOR_NAMES 
-               if excluded_sensor_name in prtg_sensor['name'])
-
-
-def opsgenie_responder_list() -> list[dict]:
-    """
-    This function will format and return a list of opsgenie responder objects
-    for an Opsgenie API alerts request.
-
-    Returns:
-        (list[dict]): A list of responder dictionaries for an Opsgenie API alert
-        request.
-    """
-
-    responders = list()
-
-    # Add team responders.
-    for team_responder_id in OPSGENIE_RESPONDER_TEAM_IDS:
-        responder = {'id': team_responder_id, 'type': 'team'}
-        responders.append(responder)
-
-    # Add user responders.
-    for user_responder_id in OPSGENIE_RESPONDER_USER_IDS:
-        responder = {'id': user_responder_id, 'type': 'user'}
-        responders.append(responder)
-
-    # Add escalation responders.
-    for escalation_responder_id in OPSGENIE_RESPONDER_ESCALATION_IDS:
-        responder = {'id': escalation_responder_id, 'type': 'escalation'}
-        responders.append(responder)
-
-    # Add schedule responders.
-    for schedule_responder_id in OPSGENIE_RESPONDER_SCHEDULE_IDS:
-        responder = {'id': schedule_responder_id, 'type': 'schedule'}
-        responders.append(responder)
-
-    return responders
 
 
 if __name__ == '__main__':
