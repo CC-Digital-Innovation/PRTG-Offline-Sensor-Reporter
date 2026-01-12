@@ -14,29 +14,26 @@ spec:
             vault.hashicorp.com/agent-inject-secret-opsgenie: 'secret/opsgenie'
             vault.hashicorp.com/agent-inject-template-opsgenie: |
               {{- with secret "secret/opsgenie" -}}
-                export OG_API_ALERTS_URI="{{ .Data.data.api_alerts_url }}"
+                export OPSGENIE_API_ALERTS_URI="{{ .Data.data.api_alerts_url }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-opsgenie: 'secret/v/opsgenie'
             vault.hashicorp.com/agent-inject-template-v-opsgenie: |
               {{- with secret "secret/v/opsgenie" -}}
-                export OG_API_TOKEN="{{ .Data.data.api_token }}"
+                export OPSGENIE_API_TOKEN="{{ .Data.data.api_token }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-prtg-offline-sensor-reporter: 'secret/v/prtg_offline_sensor_reporter'
             vault.hashicorp.com/agent-inject-template-v-prtg-offline-sensor-reporter: |
               {{- with secret "secret/v/prtg_offline_sensor_reporter" -}}
-                export OG_RESPONDER_TEAM_IDS="{{ .Data.data.og_responder_team_ids }}"
-                export OG_RESPONDER_USER_IDS="{{ .Data.data.og_responder_user_ids }}"
-                export OG_RESPONDER_ESCALATION_IDS="{{ .Data.data.og_responder_escalation_ids }}"
-                export OG_RESPONDER_SCHEDULE_IDS="{{ .Data.data.og_responder_schedule_ids }}"
-                export OG_ALERT_TITLE="{{ .Data.data.og_alert_title }}"
-                export OG_ALERT_TAGS="{{ .Data.data.og_alert_tags }}"
+                export OPSGENIE_RESPONDER_TEAM_IDS="{{ .Data.data.og_responder_team_ids }}"
+                export OPSGENIE_RESPONDER_USER_IDS="{{ .Data.data.og_responder_user_ids }}"
+                export OPSGENIE_RESPONDER_ESCALATION_IDS="{{ .Data.data.og_responder_escalation_ids }}"
+                export OPSGENIE_RESPONDER_SCHEDULE_IDS="{{ .Data.data.og_responder_schedule_ids }}"
+                export OPSGENIE_ALERT_TITLE="{{ .Data.data.og_alert_title }}"
+                export OPSGENIE_ALERT_TAGS="{{ .Data.data.og_alert_tags }}"
                 export PRTG_EXCLUDED_PROBE_SUBSTRINGS="{{ .Data.data.prtg_excluded_probe_substrings }}"
                 export PRTG_EXCLUDED_GROUP_SUBSTRINGS="{{ .Data.data.prtg_excluded_group_substrings }}"
                 export PRTG_EXCLUDED_DEVICE_SUBSTRINGS="{{ .Data.data.prtg_excluded_device_substrings }}"
                 export PRTG_EXCLUDED_SENSOR_SUBSTRINGS="{{ .Data.data.prtg_excluded_sensor_substrings }}"
-                export LOGGER_NAME="{{ .Data.data.logger_name }}"
-                export LOGGER_FILE_NAME="{{ .Data.data.logger_file_name }}"
-                export SLACK_CHANNEL_IDS="{{ .Data.data.slack_channel_ids }}"
               {{- end }}
             vault.hashicorp.com/agent-inject-secret-v-prtg: 'secret/v/prtg'
             vault.hashicorp.com/agent-inject-template-v-prtg: |
@@ -45,17 +42,6 @@ spec:
                 export PRTG_USERNAME="{{ .Data.data.api_username }}"
                 export PRTG_PASSHASH="{{ .Data.data.api_passhash }}"
               {{- end }}
-            vault.hashicorp.com/agent-inject-secret-papertrail: 'secret/papertrail'
-            vault.hashicorp.com/agent-inject-template-papertrail: |
-              {{- with secret "secret/papertrail" -}}
-                export PAPERTRAIL_ADDRESS="{{ .Data.data.address }}"
-                export PAPERTRAIL_PORT="{{ .Data.data.port }}"
-              {{- end }}
-            vault.hashicorp.com/agent-inject-secret-slack: 'secret/slack'
-            vault.hashicorp.com/agent-inject-template-slack: |
-              {{- with secret "secret/slack" -}}
-                export SLACK_API_TOKEN="{{ .Data.data.errorbot_api_token }}"
-              {{- end }}
             vault.hashicorp.com/ca-cert: /run/secrets/kubernetes.io/serviceaccount/ca.crt
             vault.hashicorp.com/agent-pre-populate-only: "true"
         spec:
@@ -63,7 +49,7 @@ spec:
             - image: harbor.k3s.quokka.ninja/library/prtg-offline-sensor-reporter:0.0.4
               imagePullPolicy: Always
               name: prtg-offline-sensor-reporter
-              args: ['/bin/bash', '-c', 'source /vault/secrets/opsgenie && source /vault/secrets/v-opsgenie && source /vault/secrets/v-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg && source /vault/secrets/papertrail && source /vault/secrets/slack && python ./src/PRTG_Offline_Sensor_Reporter.py']
+              args: ['/bin/bash', '-c', 'source /vault/secrets/opsgenie && source /vault/secrets/v-opsgenie && source /vault/secrets/v-prtg-offline-sensor-reporter && source /vault/secrets/v-prtg && python ./src/PRTG_Offline_Sensor_Reporter.py']
           restartPolicy: Never
           serviceAccountName: prtg-offline-sensor-reporter
       backoffLimit: 3
