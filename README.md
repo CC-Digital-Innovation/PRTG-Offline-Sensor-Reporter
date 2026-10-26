@@ -9,6 +9,10 @@ integration. If the script errors out, it will notify specified Slack channels.
 _Note: If you have any questions or comments you can always use GitHub
 discussions, or email me at farinaanthony96@gmail.com._
 
+#### See also
+[prtg-morning-check](https://github.com/CC-Digital-Innovation/prtg-morning-check)
+is a PowerShell version that runs as a PRTG sensor on any probe, no external dependencies.
+
 #### Why
 This script is ideal for a daily checkup before production hours begin. This 
 enables our team to tackle any issues that crop up with customer devices 
